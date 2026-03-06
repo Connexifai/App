@@ -91,6 +91,10 @@ class AuthService {
       );
     } on DioException catch (e) {
       return ApiFailure(e.apiError);
+    } catch (e) {
+      return ApiFailure(
+        ApiError(message: 'Toegangsrechten ophalen mislukt.'),
+      );
     }
   }
 

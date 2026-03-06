@@ -97,32 +97,42 @@ class AuthNotifier extends _$AuthNotifier {
     state = const AuthState.loading();
     final service = ref.read(authServiceProvider);
 
-    final loginResult = await service.login(
-      tenantIdentity: tenantIdentity,
-      clientId: clientId,
-      clientSecret: clientSecret,
-    );
+    try {
+      final loginResult = await service.login(
+        tenantIdentity: tenantIdentity,
+        clientId: clientId,
+        clientSecret: clientSecret,
+      );
 
-    if (loginResult is ApiFailure<SessionModel>) {
-      state = AuthState.error(loginResult.error.message);
-      return ApiFailure<void>(loginResult.error);
-    }
+      if (loginResult is ApiFailure<SessionModel>) {
+        state = AuthState.error(loginResult.error.message);
+        return ApiFailure<void>(loginResult.error);
+      }
 
-    final session = (loginResult as ApiSuccess<SessionModel>).data;
-    final rightsResult = await service.getAccessRights();
+      final session = (loginResult as ApiSuccess<SessionModel>).data;
 
-    state = rightsResult.when(
-      success: (rights) => AuthState.authenticated(
+      // Access rights are best-effort: don't block login if the call fails.
+      var accessRights = const AccessRights();
+      try {
+        final rightsResult = await service.getAccessRights();
+        rightsResult.when(
+          success: (rights) => accessRights = rights,
+          failure: (_) {}, // keep defaults
+        );
+      } catch (_) {
+        // keep defaults — user is logged in regardless
+      }
+
+      state = AuthState.authenticated(
         session: session,
-        accessRights: rights,
-      ),
-      failure: (error) => AuthState.error(error.message),
-    );
-
-    return rightsResult.when(
-      success: (_) => const ApiSuccess(null),
-      failure: (e) => ApiFailure<void>(e),
-    );
+        accessRights: accessRights,
+      );
+      return const ApiSuccess(null);
+    } catch (e) {
+      final message = 'Inloggen mislukt. Probeer opnieuw.';
+      state = AuthState.error(message);
+      return ApiFailure<void>(ApiError(message: message));
+    }
   }
 
   /// Signs the user out and clears the session.
