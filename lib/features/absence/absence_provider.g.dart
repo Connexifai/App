@@ -23,7 +23,7 @@ final absenceServiceProvider = AutoDisposeProvider<AbsenceService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AbsenceServiceRef = AutoDisposeProviderRef<AbsenceService>;
-String _$absenceSettingsHash() => r'416410269663311fbe58b1ef036a77808af23468';
+String _$absenceSettingsHash() => r'55dcd382797cf770615fdeb27f8c0ca4c88dc710';
 
 /// See also [absenceSettings].
 @ProviderFor(absenceSettings)
@@ -42,6 +42,25 @@ final absenceSettingsProvider =
 // ignore: unused_element
 typedef AbsenceSettingsRef =
     AutoDisposeFutureProviderRef<List<AbsencePresenceSettingDto>>;
+String _$absenceHistoryHash() => r'fea48d2b18d5efbf65589c607b2e97fa96b40095';
+
+/// See also [absenceHistory].
+@ProviderFor(absenceHistory)
+final absenceHistoryProvider =
+    AutoDisposeFutureProvider<List<AbsenceResponseDto>>.internal(
+      absenceHistory,
+      name: r'absenceHistoryProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$absenceHistoryHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AbsenceHistoryRef =
+    AutoDisposeFutureProviderRef<List<AbsenceResponseDto>>;
 String _$absenceRequestNotifierHash() =>
     r'039071d61be947ce6123baa582bfc4b54dfca7df';
 

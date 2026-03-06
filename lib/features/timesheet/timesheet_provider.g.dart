@@ -23,7 +23,7 @@ final timesheetServiceProvider = AutoDisposeProvider<TimesheetService>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TimesheetServiceRef = AutoDisposeProviderRef<TimesheetService>;
-String _$timesheetShiftsHash() => r'7312cb6dcbd987969ede808e4912b9f71d46622f';
+String _$timesheetShiftsHash() => r'c33dc765cba034e2756256b820741acf1f72565c';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -189,7 +189,7 @@ class _TimesheetShiftsProviderElement
   DateTime get endDate => (origin as TimesheetShiftsProvider).endDate;
 }
 
-String _$timesheetPeriodsHash() => r'6ffc5986210cb2840dd0e07e5d408e0c3cbf12d5';
+String _$timesheetPeriodsHash() => r'ba2aa1be096de1f857038c7041bcf454e30daee8';
 
 /// See also [timesheetPeriods].
 @ProviderFor(timesheetPeriods)

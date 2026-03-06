@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/models/response_wrapper.dart';
 import '../../core/router/app_router.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/loading_widget.dart';
-import '../../core/models/response_wrapper.dart';
 import 'auth_provider.dart';
 
-/// The login screen where employees enter their tenant code and credentials.
-///
-/// Design: full-bleed gradient header, clean card-based form below.
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -63,229 +60,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final size = MediaQuery.sizeOf(context);
-    final isSmall = size.width < 480;
-
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: LoadingOverlay(
-        isLoading: _isLoading,
-        message: 'Inloggen...',
-        child: CustomScrollView(
-          slivers: [
-            // --- Gradient header ---
-            SliverToBoxAdapter(
-              child: _buildHeader(theme, size),
-            ),
-
-            // --- Login form ---
-            SliverPadding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isSmall ? AppSpacing.md : AppSpacing.xl,
-                vertical: AppSpacing.lg,
-              ),
-              sliver: SliverToBoxAdapter(
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 440),
-                    child: _buildForm(theme),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(ThemeData theme, Size size) {
-    return Container(
-      width: double.infinity,
-      height: size.height * 0.32,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.tertiary,
-          ],
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              // App icon placeholder
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: const Icon(
-                  Icons.calendar_today_rounded,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Planbition',
-                style: theme.textTheme.headlineLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              Text(
-                'Jouw planning, altijd bij de hand',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildForm(ThemeData theme) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            'Inloggen',
-            style: theme.textTheme.headlineSmall,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            'Voer je organisatiecode en inloggegevens in.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-
-          // Tenant code
-          _FormField(
-            controller: _tenantController,
-            label: 'Organisatiecode',
-            hint: 'bijv. mijn-bedrijf',
-            icon: Icons.business_rounded,
-            validator: (v) =>
-                (v?.trim().isEmpty ?? true) ? 'Vul je organisatiecode in' : null,
-            textInputAction: TextInputAction.next,
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Client ID / gebruikersnaam
-          _FormField(
-            controller: _clientIdController,
-            label: 'Gebruikersnaam / Client ID',
-            hint: 'jouw gebruikersnaam',
-            icon: Icons.person_rounded,
-            validator: (v) =>
-                (v?.trim().isEmpty ?? true) ? 'Vul je gebruikersnaam in' : null,
-            textInputAction: TextInputAction.next,
-            keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: AppSpacing.md),
-
-          // Secret / wachtwoord
-          TextFormField(
-            controller: _clientSecretController,
-            obscureText: _obscureSecret,
-            textInputAction: TextInputAction.done,
-            onFieldSubmitted: (_) => _submit(),
-            validator: (v) =>
-                (v?.isEmpty ?? true) ? 'Vul je wachtwoord in' : null,
-            decoration: InputDecoration(
-              labelText: 'Wachtwoord / Client Secret',
-              hintText: '••••••••',
-              prefixIcon: const Icon(Icons.lock_rounded),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureSecret
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                ),
-                onPressed: () =>
-                    setState(() => _obscureSecret = !_obscureSecret),
-              ),
-            ),
-          ),
-
-          // Error message
-          if (_errorMessage != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.sm + AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    color: theme.colorScheme.onErrorContainer,
-                    size: 20,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      _errorMessage!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onErrorContainer,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-
-          const SizedBox(height: AppSpacing.lg),
-
-          // Login button
-          FilledButton(
-            onPressed: _isLoading ? null : _submit,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
-              child: Text('Inloggen'),
-            ),
-          ),
-
-          const SizedBox(height: AppSpacing.md),
-
-          // Forgot password
-          Center(
-            child: TextButton(
-              onPressed: () => _showForgotPasswordDialog(context),
-              child: Text(
-                'Wachtwoord vergeten?',
-                style: TextStyle(color: theme.colorScheme.primary),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _showForgotPasswordDialog(BuildContext context) async {
-    final theme = Theme.of(context);
     final emailController = TextEditingController();
     final tenantValue = _tenantController.text.trim();
 
@@ -297,9 +72,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Voer je e-mailadres in. Je ontvangt een code om je wachtwoord te resetten.',
-              style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.md),
             TextField(
@@ -322,9 +96,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               final email = emailController.text.trim();
               if (email.isEmpty) return;
               Navigator.of(ctx).pop();
-              await ref
-                  .read(authServiceProvider)
-                  .requestPasswordReset(
+              await ref.read(authServiceProvider).requestPasswordReset(
                     email: email,
                     tenant: tenantValue.isNotEmpty
                         ? tenantValue
@@ -334,8 +106,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
-                      'Als dit account bestaat, ontvang je een reset-e-mail.',
-                    ),
+                        'Als dit account bestaat, ontvang je een reset-e-mail.'),
                   ),
                 );
               }
@@ -346,40 +117,315 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       ),
     );
   }
-}
-
-/// A reusable form field widget with consistent styling.
-class _FormField extends StatelessWidget {
-  const _FormField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.icon,
-    required this.validator,
-    this.textInputAction = TextInputAction.next,
-    this.keyboardType,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData icon;
-  final String? Function(String?) validator;
-  final TextInputAction textInputAction;
-  final TextInputType? keyboardType;
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      textInputAction: textInputAction,
-      keyboardType: keyboardType,
-      autocorrect: false,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Stack(
+        children: [
+          const _DecorativeCircles(),
+          LoadingOverlay(
+            isLoading: _isLoading,
+            message: 'Inloggen...',
+            child: SafeArea(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 400),
+                    child: _LoginCard(
+                      formKey: _formKey,
+                      tenantController: _tenantController,
+                      clientIdController: _clientIdController,
+                      clientSecretController: _clientSecretController,
+                      obscureSecret: _obscureSecret,
+                      onToggleSecret: () =>
+                          setState(() => _obscureSecret = !_obscureSecret),
+                      errorMessage: _errorMessage,
+                      isLoading: _isLoading,
+                      onSubmit: _submit,
+                      onForgotPassword: () =>
+                          _showForgotPasswordDialog(context),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Decorative circles background
+// ---------------------------------------------------------------------------
+
+class _DecorativeCircles extends StatelessWidget {
+  const _DecorativeCircles();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final w = constraints.maxWidth;
+        final h = constraints.maxHeight;
+        return Stack(
+          children: [
+            Positioned(
+              top: -h * 0.15,
+              right: -w * 0.2,
+              child: _Circle(size: w * 0.7),
+            ),
+            Positioned(
+              top: -h * 0.05,
+              right: -w * 0.3,
+              child: _Circle(size: w * 0.5),
+            ),
+            Positioned(
+              bottom: -h * 0.1,
+              left: -w * 0.25,
+              child: _Circle(size: w * 0.6),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _Circle extends StatelessWidget {
+  const _Circle({required this.size});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.primary.withValues(alpha: 0.05),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: 0.08),
+          width: 1,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Login card
+// ---------------------------------------------------------------------------
+
+class _LoginCard extends StatelessWidget {
+  const _LoginCard({
+    required this.formKey,
+    required this.tenantController,
+    required this.clientIdController,
+    required this.clientSecretController,
+    required this.obscureSecret,
+    required this.onToggleSecret,
+    required this.errorMessage,
+    required this.isLoading,
+    required this.onSubmit,
+    required this.onForgotPassword,
+  });
+
+  final GlobalKey<FormState> formKey;
+  final TextEditingController tenantController;
+  final TextEditingController clientIdController;
+  final TextEditingController clientSecretController;
+  final bool obscureSecret;
+  final VoidCallback onToggleSecret;
+  final String? errorMessage;
+  final bool isLoading;
+  final VoidCallback onSubmit;
+  final VoidCallback onForgotPassword;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Form(
+        key: formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Logo + title
+            Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.fingerprint,
+                      color: Colors.white, size: 24),
+                ),
+                const SizedBox(width: 12),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'StaffApp',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      'Jouw planning, altijd bij de hand',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.mutedForeground,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            const Divider(color: AppColors.border),
+            const SizedBox(height: 20),
+
+            const Text(
+              'Inloggen',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Voer je organisatiecode en inloggegevens in.',
+              style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+
+            TextFormField(
+              controller: tenantController,
+              validator: (v) =>
+                  (v?.trim().isEmpty ?? true) ? 'Vul je organisatiecode in' : null,
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              decoration: const InputDecoration(
+                labelText: 'Organisatiecode',
+                hintText: 'bijv. mijn-bedrijf',
+                prefixIcon: Icon(Icons.business_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: clientIdController,
+              validator: (v) =>
+                  (v?.trim().isEmpty ?? true) ? 'Vul je gebruikersnaam in' : null,
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.emailAddress,
+              autocorrect: false,
+              decoration: const InputDecoration(
+                labelText: 'Gebruikersnaam / Client ID',
+                hintText: 'jouw gebruikersnaam',
+                prefixIcon: Icon(Icons.person_rounded),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: clientSecretController,
+              obscureText: obscureSecret,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => onSubmit(),
+              validator: (v) =>
+                  (v?.isEmpty ?? true) ? 'Vul je wachtwoord in' : null,
+              decoration: InputDecoration(
+                labelText: 'Wachtwoord / Client Secret',
+                hintText: '••••••••',
+                prefixIcon: const Icon(Icons.lock_rounded),
+                suffixIcon: IconButton(
+                  icon: Icon(obscureSecret
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined),
+                  onPressed: onToggleSecret,
+                ),
+              ),
+            ),
+
+            if (errorMessage != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.destructive.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                      color: AppColors.destructive.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline,
+                        color: AppColors.destructive, size: 16),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        errorMessage!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.destructive,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            const SizedBox(height: 20),
+
+            FilledButton(
+              onPressed: isLoading ? null : onSubmit,
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(44),
+              ),
+              child: const Text('Inloggen'),
+            ),
+
+            const SizedBox(height: 8),
+
+            Center(
+              child: TextButton(
+                onPressed: onForgotPassword,
+                child: const Text(
+                  'Wachtwoord vergeten?',
+                  style: TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

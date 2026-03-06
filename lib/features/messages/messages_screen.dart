@@ -1,90 +1,94 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/models/response_wrapper.dart';
+import '../../core/router/app_router.dart';
 import '../../shared/theme/app_theme.dart';
 import '../../shared/widgets/error_widget.dart';
 import '../../shared/widgets/loading_widget.dart';
 import 'message_models.dart';
-import '../../core/models/response_wrapper.dart';
 import 'messages_provider.dart';
 
-// ---------------------------------------------------------------------------
-// Screen
-// ---------------------------------------------------------------------------
-
-class MessagesScreen extends ConsumerWidget {
+class MessagesScreen extends ConsumerStatefulWidget {
   const MessagesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+  ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
+}
+
+class _MessagesScreenState extends ConsumerState<MessagesScreen> {
+  bool _showArchive = false;
+
+  @override
+  Widget build(BuildContext context) {
     final messagesAsync = ref.watch(messagesProvider);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Berichten'),
-        backgroundColor: theme.colorScheme.surface,
-        surfaceTintColor: theme.colorScheme.surfaceTint,
-        actions: [
-          messagesAsync.whenOrNull(
-                data: (msgs) {
-                  final unread = msgs.where((m) => !m.isRead).length;
-                  if (unread == 0) return const SizedBox.shrink();
-                  return Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.sm),
-                    child: Chip(
-                      label: Text('$unread ongelezen'),
-                      labelStyle: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onPrimary,
-                      ),
-                      backgroundColor: theme.colorScheme.primary,
-                      padding: EdgeInsets.zero,
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          _MessagesHeader(onBack: () => context.go(AppRoutes.dashboard)),
+          // Tabs
+          Container(
+            color: AppColors.card,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.muted,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  _TabBtn(
+                    label: 'Inbox',
+                    selected: !_showArchive,
+                    onTap: () => setState(() => _showArchive = false),
+                  ),
+                  _TabBtn(
+                    label: 'Archief',
+                    selected: _showArchive,
+                    onTap: () => setState(() => _showArchive = true),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Content
+          Expanded(
+            child: messagesAsync.when(
+              loading: () =>
+                  const Center(child: LoadingWidget(message: 'Berichten laden...')),
+              error: (err, _) => AppErrorWidget(
+                message: err.toString().replaceFirst('Exception: ', ''),
+                onRetry: () => ref.invalidate(messagesProvider),
+              ),
+              data: (messages) {
+                if (messages.isEmpty) return const _EmptyMessages();
+                return RefreshIndicator(
+                  onRefresh: () async => ref.invalidate(messagesProvider),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    itemCount: messages.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, color: AppColors.border),
+                    itemBuilder: (context, i) => _MessageTile(
+                      message: messages[i],
+                      onTap: () => _openDetail(context, ref, messages[i]),
                     ),
-                  );
-                },
-              ) ??
-              const SizedBox.shrink(),
-        ],
-      ),
-      body: messagesAsync.when(
-        loading: () => const LoadingWidget(message: 'Berichten laden\u2026'),
-        error: (err, _) => AppErrorWidget(
-          message: err.toString().replaceFirst('Exception: ', ''),
-          onRetry: () => ref.invalidate(messagesProvider),
-        ),
-        data: (messages) {
-          if (messages.isEmpty) {
-            return const _EmptyMessagesState();
-          }
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(messagesProvider),
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppSpacing.sm,
-              ),
-              itemCount: messages.length,
-              separatorBuilder: (_, __) => const Divider(
-                height: 1,
-                indent: AppSpacing.md + 40 + AppSpacing.md,
-              ),
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                return _MessageListTile(
-                  message: msg,
-                  onTap: () => _openDetail(context, ref, msg),
+                  ),
                 );
               },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
 
   void _openDetail(BuildContext context, WidgetRef ref, MessageDto message) {
-    // Mark as read when opening detail.
     if (!message.isRead) {
       ref.read(messageActionsNotifierProvider.notifier).markRead(message.id);
     }
@@ -93,45 +97,108 @@ class MessagesScreen extends ConsumerWidget {
       isScrollControlled: true,
       useSafeArea: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(AppRadius.xl),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
       builder: (_) => _MessageDetailSheet(message: message, ref: ref),
     );
   }
 }
 
-// ---------------------------------------------------------------------------
-// List tile
-// ---------------------------------------------------------------------------
+class _MessagesHeader extends StatelessWidget {
+  const _MessagesHeader({required this.onBack});
+  final VoidCallback onBack;
 
-class _MessageListTile extends StatelessWidget {
-  const _MessageListTile({
-    required this.message,
-    required this.onTap,
-  });
+  @override
+  Widget build(BuildContext context) {
+    final safeTop = MediaQuery.paddingOf(context).top;
+    return Container(
+      padding: EdgeInsets.only(top: safeTop, left: 4, right: 16, bottom: 0),
+      decoration: const BoxDecoration(
+        color: AppColors.card,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_rounded,
+                size: 22, color: AppColors.textPrimary),
+            onPressed: onBack,
+          ),
+          const Text(
+            'Berichten',
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+class _TabBtn extends StatelessWidget {
+  const _TabBtn(
+      {required this.label, required this.selected, required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.card : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1))
+                  ]
+                : null,
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+              color: selected
+                  ? AppColors.textPrimary
+                  : AppColors.mutedForeground,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MessageTile extends StatelessWidget {
+  const _MessageTile({required this.message, required this.onTap});
   final MessageDto message;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isPlanPush = message.type == MessageType.planPush;
     final isUnread = !message.isRead;
 
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm + 2,
-        ),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Unread dot + type icon stack
             Stack(
               clipBehavior: Clip.none,
               children: [
@@ -139,18 +206,14 @@ class _MessageListTile extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: isPlanPush
-                        ? theme.colorScheme.tertiaryContainer
-                        : theme.colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                    color: AppColors.accent,
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     isPlanPush
                         ? Icons.notifications_active_rounded
                         : Icons.info_outline_rounded,
-                    color: isPlanPush
-                        ? theme.colorScheme.onTertiaryContainer
-                        : theme.colorScheme.onSecondaryContainer,
+                    color: AppColors.accentForeground,
                     size: 20,
                   ),
                 ),
@@ -162,19 +225,15 @@ class _MessageListTile extends StatelessWidget {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary,
+                        color: AppColors.primary,
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: theme.scaffoldBackgroundColor,
-                          width: 1.5,
-                        ),
+                        border: Border.all(color: AppColors.card, width: 1.5),
                       ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(width: AppSpacing.md),
-            // Text content
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,21 +243,21 @@ class _MessageListTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           message.title,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: isUnread
-                                ? FontWeight.w700
-                                : FontWeight.w400,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight:
+                                isUnread ? FontWeight.w700 : FontWeight.w400,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.sm),
+                      const SizedBox(width: 8),
                       Text(
-                        _formatDate(message.createdAt),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+                        _fmtDate(message.createdAt),
+                        style: const TextStyle(
+                            fontSize: 11, color: AppColors.mutedForeground),
                       ),
                     ],
                   ),
@@ -207,9 +266,8 @@ class _MessageListTile extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       message.description!,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -223,7 +281,7 @@ class _MessageListTile extends StatelessWidget {
     );
   }
 
-  String _formatDate(String iso) {
+  String _fmtDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
       final now = DateTime.now();
@@ -238,16 +296,8 @@ class _MessageListTile extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Detail bottom sheet
-// ---------------------------------------------------------------------------
-
 class _MessageDetailSheet extends ConsumerStatefulWidget {
-  const _MessageDetailSheet({
-    required this.message,
-    required this.ref,
-  });
-
+  const _MessageDetailSheet({required this.message, required this.ref});
   final MessageDto message;
   final WidgetRef ref;
 
@@ -271,11 +321,9 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              action == PlanPushAction.accept
-                  ? 'Dienst geaccepteerd'
-                  : 'Dienst afgewezen',
-            ),
+            content: Text(action == PlanPushAction.accept
+                ? 'Dienst geaccepteerd'
+                : 'Dienst afgewezen'),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -285,7 +333,7 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
           SnackBar(
             content: Text(error.message),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Theme.of(context).colorScheme.error,
+            backgroundColor: AppColors.destructive,
           ),
         );
       },
@@ -294,7 +342,6 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final msg = widget.message;
     final isPlanPush = msg.type == MessageType.planPush;
 
@@ -306,14 +353,14 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
       builder: (context, scrollController) => Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            padding: const EdgeInsets.only(top: 12),
             child: Center(
               child: Container(
                 width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.outlineVariant,
-                  borderRadius: BorderRadius.circular(AppRadius.full),
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
@@ -321,7 +368,7 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
           Expanded(
             child: SingleChildScrollView(
               controller: scrollController,
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -332,38 +379,33 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: isPlanPush
-                              ? theme.colorScheme.tertiaryContainer
-                              : theme.colorScheme.secondaryContainer,
-                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Icon(
                           isPlanPush
                               ? Icons.notifications_active_rounded
                               : Icons.info_outline_rounded,
-                          color: isPlanPush
-                              ? theme.colorScheme.onTertiaryContainer
-                              : theme.colorScheme.onSecondaryContainer,
+                          color: AppColors.accentForeground,
                           size: 22,
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.md),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              msg.title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
+                            Text(msg.title,
+                                style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary)),
                             const SizedBox(height: 2),
                             Text(
-                              _formatFullDate(msg.createdAt),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                              _fmtFull(msg.createdAt),
+                              style: const TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary),
                             ),
                           ],
                         ),
@@ -372,34 +414,29 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
                   ),
                   if (msg.description != null &&
                       msg.description!.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.lg),
-                    Text(
-                      msg.description!,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurface,
-                        height: 1.6,
-                      ),
-                    ),
+                    const SizedBox(height: 20),
+                    Text(msg.description!,
+                        style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textPrimary,
+                            height: 1.6)),
                   ],
                   if (isPlanPush) ...[
-                    const SizedBox(height: AppSpacing.xl),
-                    const Divider(),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Actie vereist',
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
+                    const SizedBox(height: 24),
+                    const Divider(color: AppColors.border),
+                    const SizedBox(height: 16),
+                    const Text('Actie vereist',
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary)),
+                    const SizedBox(height: 4),
+                    const Text(
                       'Accepteer of wijs de voorgestelde roosterwijziging af.',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
+                      style: TextStyle(
+                          fontSize: 12, color: AppColors.textSecondary),
                     ),
-                    const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: 16),
                     _isActing
                         ? const Center(child: CircularProgressIndicator())
                         : Row(
@@ -411,14 +448,13 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
                                   icon: const Icon(Icons.close_rounded),
                                   label: const Text('Afwijzen'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: theme.colorScheme.error,
-                                    side: BorderSide(
-                                      color: theme.colorScheme.error,
-                                    ),
+                                    foregroundColor: AppColors.destructive,
+                                    side: const BorderSide(
+                                        color: AppColors.destructive),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: AppSpacing.md),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: FilledButton.icon(
                                   onPressed: () =>
@@ -430,7 +466,7 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
                             ],
                           ),
                   ],
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
@@ -440,7 +476,7 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
     );
   }
 
-  String _formatFullDate(String iso) {
+  String _fmtFull(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
       return DateFormat('EEEE d MMMM yyyy, HH:mm', 'nl_NL').format(dt);
@@ -450,45 +486,27 @@ class _MessageDetailSheetState extends ConsumerState<_MessageDetailSheet> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Empty state
-// ---------------------------------------------------------------------------
-
-class _EmptyMessagesState extends StatelessWidget {
-  const _EmptyMessagesState();
+class _EmptyMessages extends StatelessWidget {
+  const _EmptyMessages();
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.mark_email_read_rounded,
-              size: 72,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.2),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              'Geen berichten',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              'Je hebt momenteel geen berichten\nin je berichtencentrum.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.mark_email_read_rounded,
+              size: 64, color: Color(0x33626C7A)),
+          SizedBox(height: 16),
+          Text('Geen berichten',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+          SizedBox(height: 4),
+          Text('Je hebt momenteel geen berichten.',
+              style: TextStyle(fontSize: 13, color: AppColors.mutedForeground)),
+        ],
       ),
     );
   }

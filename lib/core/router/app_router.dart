@@ -15,6 +15,7 @@ import '../../features/availability/availability_screen.dart';
 import '../../features/marketplace/marketplace_screen.dart';
 import '../../features/timesheet/timesheet_screen.dart';
 import '../../features/profile/profile_screen.dart';
+import '../../features/shift_confirm/shift_confirm_screen.dart';
 import 'main_shell.dart';
 
 part 'app_router.g.dart';
@@ -34,6 +35,7 @@ abstract final class AppRoutes {
   static const String marketplace = '/marketplace';
   static const String timesheet = '/timesheet';
   static const String profile = '/profile';
+  static const String confirm = '/confirm';
 }
 
 // ---------------------------------------------------------------------------
@@ -76,8 +78,7 @@ GoRouter appRouter(Ref ref) {
       // Main shell with bottom navigation
       ShellRoute(
         builder: (context, state, child) {
-          final rights = ref.read(accessRightsProvider);
-          return MainShell(accessRights: rights, child: child);
+          return MainShell(child: child);
         },
         routes: [
           GoRoute(
@@ -127,6 +128,12 @@ GoRouter appRouter(Ref ref) {
             name: 'profile',
             pageBuilder: (context, state) =>
                 const NoTransitionPage(child: ProfileScreen()),
+          ),
+          GoRoute(
+            path: AppRoutes.confirm,
+            name: 'confirm',
+            pageBuilder: (context, state) =>
+                const NoTransitionPage(child: ShiftConfirmScreen()),
           ),
         ],
       ),

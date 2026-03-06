@@ -25,7 +25,7 @@ final marketplaceServiceProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef MarketplaceServiceRef = AutoDisposeProviderRef<MarketplaceService>;
-String _$marketplaceShiftsHash() => r'4e837420291ef8965b7528a087f4fe0ed25f71ea';
+String _$marketplaceShiftsHash() => r'6fba7f2fbd438246b9ffaafcaeb3e86cef768e85';
 
 /// See also [marketplaceShifts].
 @ProviderFor(marketplaceShifts)

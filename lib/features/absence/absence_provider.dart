@@ -24,6 +24,16 @@ Future<List<AbsencePresenceSettingDto>> absenceSettings(Ref ref) async {
 }
 
 @riverpod
+Future<List<AbsenceResponseDto>> absenceHistory(Ref ref) async {
+  final service = ref.watch(absenceServiceProvider);
+  final result = await service.getAbsenceHistory();
+  return result.when(
+    success: (data) => data,
+    failure: (_) => [],
+  );
+}
+
+@riverpod
 class AbsenceRequestNotifier extends _$AbsenceRequestNotifier {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
