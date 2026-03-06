@@ -44,7 +44,10 @@ abstract final class AppRoutes {
 
 @Riverpod(keepAlive: true)
 GoRouter appRouter(Ref ref) {
-  final authState = ref.watch(authNotifierProvider);
+  // Do NOT watch authNotifierProvider here — that would recreate the entire
+  // GoRouter on every auth-state change, losing navigation context.
+  // Instead, the _RouterChangeNotifier triggers a redirect re-evaluation
+  // and the redirect callback reads the current state via ref.read.
   final notifier = _RouterChangeNotifier(ref);
 
   ref.onDispose(notifier.dispose);
@@ -54,6 +57,7 @@ GoRouter appRouter(Ref ref) {
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
+      final authState = ref.read(authNotifierProvider);
       final isLoggingIn = state.matchedLocation == AppRoutes.login;
 
       if (authState is AuthStateInitial || authState is AuthStateLoading) {
