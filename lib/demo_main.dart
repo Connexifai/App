@@ -72,10 +72,17 @@ class _DemoApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
+
+    // Toggle between brand themes by changing the `adecco` flag:
+    //   false → Planbition (primary blue #2563EB)
+    //   true  → Adecco (primary orange #EE7203 + dark blue #003DA5)
+    // Toggle: false → Planbition (blue), true → Adecco (orange + dark blue)
+    const adecco = false;
+
     return MaterialApp.router(
       title: 'Planbition — Demo',
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: AppTheme.light(adecco: adecco),
+      darkTheme: AppTheme.dark(adecco: adecco),
       themeMode: ThemeMode.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

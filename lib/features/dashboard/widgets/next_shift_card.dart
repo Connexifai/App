@@ -114,12 +114,12 @@ class NextShiftCard extends StatelessWidget {
             if (shift.isConfirmed == true)
               const _StatusBadge(
                 icon: Icons.check_circle_rounded,
-                color: AppTheme.success,
+                color: AppColors.success,
               )
             else if (shift.confirmationStatusId != null)
               const _StatusBadge(
                 icon: Icons.pending_rounded,
-                color: AppTheme.warning,
+                color: AppColors.warning,
               ),
           ],
         ),

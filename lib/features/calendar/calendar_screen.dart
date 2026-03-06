@@ -436,15 +436,15 @@ class _EventCard extends StatelessWidget {
           ),
         CalendarEventType.absence => (
             Icons.beach_access_rounded,
-            AppTheme.accentTeal,
+            AppColors.shiftAbsence,
           ),
         CalendarEventType.availability => (
             Icons.event_available_rounded,
-            AppTheme.success,
+            AppColors.success,
           ),
         CalendarEventType.requestedAbsence => (
             Icons.pending_actions_rounded,
-            AppTheme.warning,
+            AppColors.warning,
           ),
       };
 

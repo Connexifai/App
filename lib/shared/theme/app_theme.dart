@@ -1,95 +1,104 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
+import 'app_colors.dart';
+import 'app_typography.dart';
+
+export 'app_colors.dart';
+export 'app_typography.dart';
 
 /// The Planbition design system.
 ///
-/// Provides Material 3 [ThemeData] for light and dark modes with a
-/// professional, clean aesthetic using an 8-point spacing grid.
+/// Provides Material 3 [ThemeData] for light and dark modes.
+///
+/// **Branding toggle:**
+/// ```dart
+/// // Default Planbition brand (blue)
+/// AppTheme.light()
+///
+/// // Adecco brand (orange #EE7203 + dark blue #003DA5)
+/// AppTheme.light(adecco: true)
+/// ```
+///
+/// The [seedColor] parameter overrides the brand seed entirely — useful for
+/// per-tenant dynamic branding fetched from the `/Branding` API endpoint.
 abstract final class AppTheme {
-  // ---------------------------------------------------------------------------
-  // Brand colours
-  // ---------------------------------------------------------------------------
+  // ── Public factory methods ─────────────────────────────────────────────────
 
-  /// Primary brand blue — used for primary actions and active states.
-  static const Color primaryBlue = Color(0xFF2563EB);
+  /// Creates the light [ThemeData].
+  ///
+  /// Set [adecco] = `true` to activate the Adecco brand palette.
+  /// An explicit [seedColor] always takes precedence over [adecco].
+  static ThemeData light({bool adecco = false, Color? seedColor}) {
+    final seed = seedColor ?? AppColors.primarySeed(adecco: adecco);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: Brightness.light,
+      surface: AppColors.surfaceLight,
+      secondary: adecco ? AppColors.adeccoSecondary : null,
+    );
+    final text = AppTypography.buildTextTheme(scheme);
 
-  /// Darker shade for pressed/hover states.
-  static const Color primaryBlueDark = Color(0xFF1D4ED8);
-
-  /// Accent teal — used for secondary highlights.
-  static const Color accentTeal = Color(0xFF0891B2);
-
-  /// Neutral background for light mode.
-  static const Color surfaceLight = Color(0xFFF8FAFC);
-
-  /// Card background for light mode.
-  static const Color cardLight = Color(0xFFFFFFFF);
-
-  /// Neutral background for dark mode.
-  static const Color surfaceDark = Color(0xFF0F172A);
-
-  /// Card background for dark mode.
-  static const Color cardDark = Color(0xFF1E293B);
-
-  /// Success green.
-  static const Color success = Color(0xFF16A34A);
-
-  /// Warning amber.
-  static const Color warning = Color(0xFFD97706);
-
-  /// Error red.
-  static const Color error = Color(0xFFDC2626);
-
-  // ---------------------------------------------------------------------------
-  // Typography
-  // ---------------------------------------------------------------------------
-
-  static TextTheme _buildTextTheme(ColorScheme colors) {
-    final base = GoogleFonts.outfitTextTheme();
-    return base.copyWith(
-      displayLarge: base.displayLarge?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: colors.onSurface,
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      textTheme: text,
+      scaffoldBackgroundColor: AppColors.surfaceLight,
+      cardTheme: _cardTheme(scheme),
+      inputDecorationTheme: _inputTheme(scheme),
+      elevatedButtonTheme: _elevatedButtonTheme(scheme),
+      filledButtonTheme: _filledButtonTheme(scheme),
+      appBarTheme: _appBarTheme(scheme),
+      navigationBarTheme: _navBarTheme(scheme),
+      snackBarTheme: _snackBarTheme(scheme),
+      chipTheme: _chipTheme(scheme),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant.withValues(alpha: 0.5),
+        thickness: 1,
       ),
-      displayMedium: base.displayMedium?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: colors.onSurface,
-      ),
-      headlineLarge: base.headlineLarge?.copyWith(
-        fontWeight: FontWeight.w700,
-        color: colors.onSurface,
-      ),
-      headlineMedium: base.headlineMedium?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colors.onSurface,
-      ),
-      headlineSmall: base.headlineSmall?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colors.onSurface,
-      ),
-      titleLarge: base.titleLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: colors.onSurface,
-      ),
-      titleMedium: base.titleMedium?.copyWith(
-        fontWeight: FontWeight.w500,
-        color: colors.onSurface,
-      ),
-      bodyLarge: base.bodyLarge?.copyWith(color: colors.onSurface),
-      bodyMedium: base.bodyMedium?.copyWith(color: colors.onSurface),
-      bodySmall: base.bodySmall?.copyWith(
-        color: colors.onSurface.withValues(alpha: 0.7),
-      ),
-      labelLarge: base.labelLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       ),
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Component themes
-  // ---------------------------------------------------------------------------
+  /// Creates the dark [ThemeData].
+  ///
+  /// Set [adecco] = `true` to activate the Adecco brand palette.
+  /// An explicit [seedColor] always takes precedence over [adecco].
+  static ThemeData dark({bool adecco = false, Color? seedColor}) {
+    final seed = seedColor ?? AppColors.primarySeed(adecco: adecco);
+    final scheme = ColorScheme.fromSeed(
+      seedColor: seed,
+      brightness: Brightness.dark,
+      surface: AppColors.cardDark,
+      secondary: adecco ? AppColors.adeccoSecondary : null,
+    );
+    final text = AppTypography.buildTextTheme(scheme);
+
+    return ThemeData(
+      useMaterial3: true,
+      colorScheme: scheme,
+      textTheme: text,
+      scaffoldBackgroundColor: AppColors.surfaceDark,
+      cardTheme: _cardTheme(scheme),
+      inputDecorationTheme: _inputTheme(scheme),
+      elevatedButtonTheme: _elevatedButtonTheme(scheme),
+      filledButtonTheme: _filledButtonTheme(scheme),
+      appBarTheme: _appBarTheme(scheme),
+      navigationBarTheme: _navBarTheme(scheme),
+      snackBarTheme: _snackBarTheme(scheme),
+      chipTheme: _chipTheme(scheme),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant.withValues(alpha: 0.3),
+        thickness: 1,
+      ),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+    );
+  }
+
+  // ── Component themes ───────────────────────────────────────────────────────
 
   static CardThemeData _cardTheme(ColorScheme colors) => CardThemeData(
     elevation: 0,
@@ -144,10 +153,7 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
+          textStyle: AppTypography.button(),
         ),
       );
 
@@ -158,10 +164,7 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          textStyle: GoogleFonts.outfit(
-            fontWeight: FontWeight.w600,
-            fontSize: 15,
-          ),
+          textStyle: AppTypography.button(),
         ),
       );
 
@@ -172,11 +175,7 @@ abstract final class AppTheme {
     scrolledUnderElevation: 1,
     shadowColor: colors.shadow.withValues(alpha: 0.1),
     centerTitle: false,
-    titleTextStyle: GoogleFonts.outfit(
-      fontSize: 20,
-      fontWeight: FontWeight.w700,
-      color: colors.onSurface,
-    ),
+    titleTextStyle: AppTypography.appBarTitle(colors.onSurface),
   );
 
   static NavigationBarThemeData _navBarTheme(ColorScheme colors) =>
@@ -187,10 +186,7 @@ abstract final class AppTheme {
         indicatorColor: colors.primaryContainer,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
-          return GoogleFonts.outfit(
-            fontSize: 11,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-          );
+          return AppTypography.navLabel(selected: isSelected);
         }),
       );
 
@@ -199,81 +195,13 @@ abstract final class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         backgroundColor: colors.inverseSurface,
-        contentTextStyle: GoogleFonts.outfit(color: colors.onInverseSurface),
+        contentTextStyle: AppTypography.snackBar(colors.onInverseSurface),
       );
 
   static ChipThemeData _chipTheme(ColorScheme colors) => ChipThemeData(
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    labelStyle: GoogleFonts.outfit(fontSize: 13, fontWeight: FontWeight.w500),
+    labelStyle: AppTypography.chip(),
   );
-
-  // ---------------------------------------------------------------------------
-  // Public factory methods
-  // ---------------------------------------------------------------------------
-
-  /// Creates the light [ThemeData].
-  static ThemeData light({Color? seedColor}) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seedColor ?? primaryBlue,
-      brightness: Brightness.light,
-      surface: surfaceLight,
-    );
-    final text = _buildTextTheme(scheme);
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      textTheme: text,
-      scaffoldBackgroundColor: surfaceLight,
-      cardTheme: _cardTheme(scheme),
-      inputDecorationTheme: _inputTheme(scheme),
-      elevatedButtonTheme: _elevatedButtonTheme(scheme),
-      filledButtonTheme: _filledButtonTheme(scheme),
-      appBarTheme: _appBarTheme(scheme),
-      navigationBarTheme: _navBarTheme(scheme),
-      snackBarTheme: _snackBarTheme(scheme),
-      chipTheme: _chipTheme(scheme),
-      dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.5),
-        thickness: 1,
-      ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      ),
-    );
-  }
-
-  /// Creates the dark [ThemeData].
-  static ThemeData dark({Color? seedColor}) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seedColor ?? primaryBlue,
-      brightness: Brightness.dark,
-      surface: cardDark,
-    );
-    final text = _buildTextTheme(scheme);
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      textTheme: text,
-      scaffoldBackgroundColor: surfaceDark,
-      cardTheme: _cardTheme(scheme),
-      inputDecorationTheme: _inputTheme(scheme),
-      elevatedButtonTheme: _elevatedButtonTheme(scheme),
-      filledButtonTheme: _filledButtonTheme(scheme),
-      appBarTheme: _appBarTheme(scheme),
-      navigationBarTheme: _navBarTheme(scheme),
-      snackBarTheme: _snackBarTheme(scheme),
-      chipTheme: _chipTheme(scheme),
-      dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.3),
-        thickness: 1,
-      ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      ),
-    );
-  }
 }
 
 /// Spacing constants following an 8-point grid.
