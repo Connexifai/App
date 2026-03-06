@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 import 'app_typography.dart';
@@ -6,205 +7,150 @@ import 'app_typography.dart';
 export 'app_colors.dart';
 export 'app_typography.dart';
 
-/// The Planbition design system.
+/// Centraal thema — gesynchroniseerd vanuit flutter-ui-refresh spec.
 ///
-/// Provides Material 3 [ThemeData] for light and dark modes.
-///
-/// **Branding toggle:**
-/// ```dart
-/// // Default Planbition brand (blue)
-/// AppTheme.light()
-///
-/// // Adecco brand (orange #EE7203 + dark blue #003DA5)
-/// AppTheme.light(adecco: true)
-/// ```
-///
-/// The [seedColor] parameter overrides the brand seed entirely — useful for
-/// per-tenant dynamic branding fetched from the `/Branding` API endpoint.
+/// Gebruik `AppTheme.light()` in [MaterialApp].
+/// Schakel tussen merken via de [adecco] vlag.
 abstract final class AppTheme {
-  // ── Public factory methods ─────────────────────────────────────────────────
+  // ── Radius tokens (spec) ───────────────────────────────────────────────────
 
-  /// Creates the light [ThemeData].
-  ///
-  /// Set [adecco] = `true` to activate the Adecco brand palette.
-  /// An explicit [seedColor] always takes precedence over [adecco].
-  static ThemeData light({bool adecco = false, Color? seedColor}) {
-    final seed = seedColor ?? AppColors.primarySeed(adecco: adecco);
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
+  static const double radiusSm = 4.0;
+  static const double radiusMd = 6.0;
+  static const double radiusLg = 8.0;
+
+  // ── Public factory ─────────────────────────────────────────────────────────
+
+  /// Licht thema. [adecco] = `true` activeert Adecco-merkkleur (rood).
+  static ThemeData light({bool adecco = false}) {
+    final primary = adecco ? AppColors.adeccoPrimary : AppColors.primary;
+    final secondary = adecco ? AppColors.adeccoSecondary : AppColors.secondary;
+    final accentColor = adecco ? AppColors.adeccoAccent : AppColors.accent;
+
+    return ThemeData(
+      useMaterial3: true,
       brightness: Brightness.light,
-      surface: AppColors.surfaceLight,
-      secondary: adecco ? AppColors.adeccoSecondary : null,
-    );
-    final text = AppTypography.buildTextTheme(scheme);
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      textTheme: text,
-      scaffoldBackgroundColor: AppColors.surfaceLight,
-      cardTheme: _cardTheme(scheme),
-      inputDecorationTheme: _inputTheme(scheme),
-      elevatedButtonTheme: _elevatedButtonTheme(scheme),
-      filledButtonTheme: _filledButtonTheme(scheme),
-      appBarTheme: _appBarTheme(scheme),
-      navigationBarTheme: _navBarTheme(scheme),
-      snackBarTheme: _snackBarTheme(scheme),
-      chipTheme: _chipTheme(scheme),
-      dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.5),
-        thickness: 1,
+      scaffoldBackgroundColor: AppColors.background,
+      fontFamily: GoogleFonts.inter().fontFamily,
+      colorScheme: ColorScheme.light(
+        primary: primary,
+        onPrimary: AppColors.primaryForeground,
+        secondary: secondary,
+        onSecondary: AppColors.secondaryForeground,
+        surface: AppColors.card,
+        onSurface: AppColors.foreground,
+        error: AppColors.destructive,
+        onError: AppColors.destructiveForeground,
+        outline: AppColors.border,
+        surfaceContainerHighest: AppColors.surfaceSunken,
       ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      textTheme: AppTypography.textTheme,
+      cardTheme: CardThemeData(
+        color: AppColors.card,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusLg),
+          side: const BorderSide(color: AppColors.border),
+        ),
       ),
-    );
-  }
-
-  /// Creates the dark [ThemeData].
-  ///
-  /// Set [adecco] = `true` to activate the Adecco brand palette.
-  /// An explicit [seedColor] always takes precedence over [adecco].
-  static ThemeData dark({bool adecco = false, Color? seedColor}) {
-    final seed = seedColor ?? AppColors.primarySeed(adecco: adecco);
-    final scheme = ColorScheme.fromSeed(
-      seedColor: seed,
-      brightness: Brightness.dark,
-      surface: AppColors.cardDark,
-      secondary: adecco ? AppColors.adeccoSecondary : null,
-    );
-    final text = AppTypography.buildTextTheme(scheme);
-
-    return ThemeData(
-      useMaterial3: true,
-      colorScheme: scheme,
-      textTheme: text,
-      scaffoldBackgroundColor: AppColors.surfaceDark,
-      cardTheme: _cardTheme(scheme),
-      inputDecorationTheme: _inputTheme(scheme),
-      elevatedButtonTheme: _elevatedButtonTheme(scheme),
-      filledButtonTheme: _filledButtonTheme(scheme),
-      appBarTheme: _appBarTheme(scheme),
-      navigationBarTheme: _navBarTheme(scheme),
-      snackBarTheme: _snackBarTheme(scheme),
-      chipTheme: _chipTheme(scheme),
-      dividerTheme: DividerThemeData(
-        color: scheme.outlineVariant.withValues(alpha: 0.3),
-        thickness: 1,
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: AppColors.primaryForeground,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+        ),
       ),
-      listTileTheme: const ListTileThemeData(
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+        ),
       ),
-    );
-  }
-
-  // ── Component themes ───────────────────────────────────────────────────────
-
-  static CardThemeData _cardTheme(ColorScheme colors) => CardThemeData(
-    elevation: 0,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-      side: BorderSide(
-        color: colors.outlineVariant.withValues(alpha: 0.5),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: AppColors.foreground,
+          side: const BorderSide(color: AppColors.border),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+        ),
       ),
-    ),
-    color: colors.surface,
-    margin: EdgeInsets.zero,
-  );
-
-  static InputDecorationTheme _inputTheme(ColorScheme colors) =>
-      InputDecorationTheme(
+      inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colors.surfaceContainerHighest.withValues(alpha: 0.5),
+        fillColor: AppColors.background,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(radiusMd),
+          borderSide: const BorderSide(color: AppColors.inputBorder),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: colors.outline.withValues(alpha: 0.3),
-          ),
+          borderRadius: BorderRadius.circular(radiusMd),
+          borderSide: const BorderSide(color: AppColors.inputBorder),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.primary, width: 2),
+          borderRadius: BorderRadius.circular(radiusMd),
+          borderSide: BorderSide(color: primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: colors.error),
+          borderRadius: BorderRadius.circular(radiusMd),
+          borderSide: const BorderSide(color: AppColors.destructive),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
-        hintStyle: TextStyle(
-          color: colors.onSurface.withValues(alpha: 0.4),
-        ),
-      );
-
-  static ElevatedButtonThemeData _elevatedButtonTheme(ColorScheme colors) =>
-      ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: colors.primary,
-          foregroundColor: colors.onPrimary,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: AppTypography.button(),
-        ),
-      );
-
-  static FilledButtonThemeData _filledButtonTheme(ColorScheme colors) =>
-      FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          textStyle: AppTypography.button(),
-        ),
-      );
-
-  static AppBarTheme _appBarTheme(ColorScheme colors) => AppBarTheme(
-    backgroundColor: colors.surface,
-    foregroundColor: colors.onSurface,
-    elevation: 0,
-    scrolledUnderElevation: 1,
-    shadowColor: colors.shadow.withValues(alpha: 0.1),
-    centerTitle: false,
-    titleTextStyle: AppTypography.appBarTitle(colors.onSurface),
-  );
-
-  static NavigationBarThemeData _navBarTheme(ColorScheme colors) =>
-      NavigationBarThemeData(
-        backgroundColor: colors.surface,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        hintStyle: const TextStyle(color: AppColors.mutedForeground),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.border,
+        thickness: 1,
+      ),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.card,
+        foregroundColor: AppColors.foreground,
         elevation: 0,
-        shadowColor: colors.shadow.withValues(alpha: 0.1),
-        indicatorColor: colors.primaryContainer,
+        scrolledUnderElevation: 1,
+        shadowColor: Colors.black.withValues(alpha: 0.05),
+        titleTextStyle: AppTypography.textTheme.titleLarge,
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.card,
+        elevation: 0,
+        indicatorColor: accentColor,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
-          final isSelected = states.contains(WidgetState.selected);
-          return AppTypography.navLabel(selected: isSelected);
+          final selected = states.contains(WidgetState.selected);
+          return GoogleFonts.inter(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+            color: selected ? primary : AppColors.mutedForeground,
+          );
         }),
-      );
-
-  static SnackBarThemeData _snackBarTheme(ColorScheme colors) =>
-      SnackBarThemeData(
+      ),
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: colors.inverseSurface,
-        contentTextStyle: AppTypography.snackBar(colors.onInverseSurface),
-      );
-
-  static ChipThemeData _chipTheme(ColorScheme colors) => ChipThemeData(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-    labelStyle: AppTypography.chip(),
-  );
+        backgroundColor: AppColors.foreground,
+        contentTextStyle: const TextStyle(color: AppColors.card),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusMd),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusSm),
+        ),
+        labelStyle: AppTypography.textTheme.labelSmall,
+      ),
+    );
+  }
 }
 
-/// Spacing constants following an 8-point grid.
+/// Spacing-constanten op basis van een 8-punt grid.
 abstract final class AppSpacing {
   static const double xs = 4;
   static const double sm = 8;
@@ -214,11 +160,11 @@ abstract final class AppSpacing {
   static const double xxl = 48;
 }
 
-/// Border radius constants.
+/// Border-radius constanten — afgestemd op spec-waarden.
 abstract final class AppRadius {
-  static const double sm = 8;
-  static const double md = 12;
-  static const double lg = 16;
-  static const double xl = 24;
+  static const double sm = 4;   // spec radiusSm
+  static const double md = 6;   // spec radiusMd
+  static const double lg = 8;   // spec radiusLg
+  static const double xl = 16;  // bottom sheets / modals
   static const double full = 999;
 }

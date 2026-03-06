@@ -1,112 +1,94 @@
 import 'package:flutter/material.dart';
 
-/// All color tokens for the Planbition design system.
-///
-/// Organised into:
-/// - **Planbition brand** — default palette
-/// - **Adecco brand** — optional branding override (use via [AppTheme] `adecco` flag)
-/// - **Surfaces** — background and card colors for light/dark mode
-/// - **Semantic** — success, warning, error, info
-/// - **Shift status** — per-shift confirmation state (derived from internal Report colors)
-/// - **Shift type** — per-shift kind/category
+/// Design tokens — gesynchroniseerd vanuit flutter-ui-refresh Lovable prototype.
+/// Last synced: 2026-03-06
 abstract final class AppColors {
-  // ── Planbition brand ───────────────────────────────────────────────────────
+  // ── Core surfaces ──────────────────────────────────────────────────────────
 
-  /// Primary brand blue — default seed for [ColorScheme.fromSeed].
-  static const Color planbitionPrimary = Color(0xFF2563EB);
+  static const Color background = Color(0xFFFCFDFE);
+  static const Color foreground = Color(0xFF161B26);
+  static const Color card = Color(0xFFFFFFFF);
+  static const Color surfaceElevated = Color(0xFFFFFFFF);
+  static const Color surfaceSunken = Color(0xFFF5F7F9);
 
-  /// Darker shade used for pressed/hover states.
-  static const Color planbitionPrimaryDark = Color(0xFF1D4ED8);
+  // ── Brand: Professional blue ───────────────────────────────────────────────
 
-  /// Secondary accent teal.
-  static const Color planbitionAccent = Color(0xFF0891B2);
+  static const Color primary = Color(0xFF2463EB);
+  static const Color primaryForeground = Color(0xFFFFFFFF);
 
-  // ── Adecco brand override ─────────────────────────────────────────────────
+  // ── Secondary ─────────────────────────────────────────────────────────────
 
-  /// Adecco primary orange — replaces seed color when `adecco: true`.
-  static const Color adeccoPrimary = Color(0xFFEE7203);
+  static const Color secondary = Color(0xFFEEF1F5);
+  static const Color secondaryForeground = Color(0xFF333D4D);
 
-  /// Adecco secondary dark blue — used as secondary/container accent.
-  static const Color adeccoSecondary = Color(0xFF003DA5);
+  // ── Muted ─────────────────────────────────────────────────────────────────
 
-  // ── Surfaces ──────────────────────────────────────────────────────────────
+  static const Color muted = Color(0xFFF0F2F5);
+  static const Color mutedForeground = Color(0xFF707A8A);
 
-  /// Scaffold background for light mode.
-  static const Color surfaceLight = Color(0xFFF8FAFC);
+  // ── Accent ────────────────────────────────────────────────────────────────
 
-  /// Card / sheet background for light mode.
-  static const Color cardLight = Color(0xFFFFFFFF);
+  static const Color accent = Color(0xFFE8F1FE);
+  static const Color accentForeground = Color(0xFF1D54C9);
 
-  /// Scaffold background for dark mode.
-  static const Color surfaceDark = Color(0xFF0F172A);
+  // ── Destructive / Error ───────────────────────────────────────────────────
 
-  /// Card / sheet background for dark mode.
-  static const Color cardDark = Color(0xFF1E293B);
+  static const Color destructive = Color(0xFFE5393F);
+  static const Color destructiveForeground = Color(0xFFFFFFFF);
 
-  // ── Semantic ──────────────────────────────────────────────────────────────
+  // ── Success ───────────────────────────────────────────────────────────────
 
-  /// Positive confirmation, present, success state.
-  static const Color success = Color(0xFF16A34A);
+  static const Color success = Color(0xFF2BA366);
+  static const Color successForeground = Color(0xFFFFFFFF);
 
-  /// Warning, caution, non-critical alert.
-  static const Color warning = Color(0xFFD97706);
+  // ── Warning ───────────────────────────────────────────────────────────────
 
-  /// Error, critical, cancelled state.
-  static const Color error = Color(0xFFDC2626);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color warningForeground = Color(0xFFFFFFFF);
 
-  /// Informational, neutral highlight.
-  static const Color info = Color(0xFF0891B2);
+  // ── Borders ───────────────────────────────────────────────────────────────
 
-  // ── Shift STATUS kleuren ───────────────────────────────────────────────────
-  //
-  // Derived from the internal workforce reporting tool (Report colors.xlsx):
-  //   • Green  #008000  → confirmed / present  (softened to #16A34A)
-  //   • Red    #FF0000  → cancelled / problem   (softened to #DC2626)
-  //   • Amber  #FFD700  → pending / sick        (softened to #D97706)
-  //   • Blue            → planned (new token)
+  static const Color border = Color(0xFFDEE2E8);
+  static const Color inputBorder = Color(0xFFDEE2E8);
 
-  /// Shift is scheduled but not yet confirmed by the employee.
-  static const Color shiftPlanned = Color(0xFF3B82F6);
+  // ── Text hierarchy ────────────────────────────────────────────────────────
 
-  /// Shift confirmed — employee has accepted.
-  static const Color shiftConfirmed = Color(0xFF16A34A);
+  static const Color textPrimary = Color(0xFF161B26);
+  static const Color textSecondary = Color(0xFF626C7A);
+  static const Color textTertiary = Color(0xFF8E96A3);
 
-  /// Shift cancelled or declined.
-  static const Color shiftCancelled = Color(0xFFDC2626);
+  // ── Shift kleuren ─────────────────────────────────────────────────────────
 
-  /// Shift awaiting action — pending confirmation or sick/absent notification.
-  static const Color shiftPending = Color(0xFFD97706);
+  static const Color shiftMorning = Color(0xFFF59E0B);    // ochtend — amber
+  static const Color shiftAfternoon = Color(0xFF2463EB);  // middag — blauw
+  static const Color shiftNight = Color(0xFF7C3AED);      // nacht — paars
+  static const Color shiftFree = Color(0xFF2BA366);       // vrij — groen
+  static const Color shiftLeave = Color(0xFFE87724);      // verlof — oranje
+  static const Color shiftSick = Color(0xFFE5393F);       // ziek — rood
 
-  // ── Shift TYPE kleuren ─────────────────────────────────────────────────────
+  // ── Default / StaffApp branding ───────────────────────────────────────────
 
-  /// Regular fixed contract shift.
-  static const Color shiftRegular = Color(0xFF2563EB);
+  static const Color defaultPrimary = Color(0xFF2463EB);
+  static const Color defaultSecondary = Color(0xFFEEF1F5);
+  static const Color defaultAccent = Color(0xFFE8F1FE);
 
-  /// On-call / flex shift.
-  static const Color shiftOnCall = Color(0xFF9333EA);
+  // ── Adecco branding override ──────────────────────────────────────────────
 
-  /// Marketplace open shift.
-  static const Color shiftMarketplace = Color(0xFF0891B2);
+  static const Color adeccoPrimary = Color(0xFFC90031);    // Adecco rood
+  static const Color adeccoSecondary = Color(0xFFF5E8EC);
+  static const Color adeccoAccent = Color(0xFFFDE8EE);
 
-  /// Absence / leave / verlof.
-  static const Color shiftAbsence = Color(0xFFEA580C);
+  // ── Helpers ───────────────────────────────────────────────────────────────
 
-  // ── Helpers ────────────────────────────────────────────────────────────────
-
-  /// Returns the primary seed color for [ColorScheme.fromSeed].
+  /// Retourneert de kleur voor een shift-bevestigingsstatus.
   ///
-  /// Pass [adecco] = `true` to activate Adecco brand colors.
-  static Color primarySeed({bool adecco = false}) =>
-      adecco ? adeccoPrimary : planbitionPrimary;
-
-  /// Returns the [Color] that represents a shift confirmation [status].
-  ///
-  /// [status] values map to the API's `ConfirmationStatus` field:
-  ///   `0` = planned, `1` = confirmed, `2` = cancelled, `3` = pending.
+  /// Mapping van API `ConfirmationStatus`:
+  ///   `1` = bevestigd (groen), `2` = geannuleerd (rood),
+  ///   `3` = pending (amber), overige = gepland (blauw).
   static Color forShiftStatus(int? status) => switch (status) {
-    1 => shiftConfirmed,
-    2 => shiftCancelled,
-    3 => shiftPending,
-    _ => shiftPlanned,
+    1 => shiftFree,
+    2 => shiftSick,
+    3 => shiftMorning,
+    _ => shiftAfternoon,
   };
 }

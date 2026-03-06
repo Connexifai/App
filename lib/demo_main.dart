@@ -82,7 +82,6 @@ class _DemoApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Planbition — Demo',
       theme: AppTheme.light(adecco: adecco),
-      darkTheme: AppTheme.dark(adecco: adecco),
       themeMode: ThemeMode.light,
       routerConfig: router,
       debugShowCheckedModeBanner: false,

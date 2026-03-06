@@ -436,7 +436,7 @@ class _EventCard extends StatelessWidget {
           ),
         CalendarEventType.absence => (
             Icons.beach_access_rounded,
-            AppColors.shiftAbsence,
+            AppColors.shiftLeave,
           ),
         CalendarEventType.availability => (
             Icons.event_available_rounded,
