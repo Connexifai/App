@@ -2,8 +2,12 @@
 library;
 
 abstract final class ApiConstants {
-  /// Base URL for the production API.
-  static const String baseUrl = 'https://mobile-api.planbition.nl';
+  /// Base URL for the API.
+  /// Override at build time with --dart-define=API_URL=http://localhost:8080
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'https://mobile-api.planbition.nl',
+  );
 
   /// API version header value.
   static const String apiVersion = '1.0';

@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "planbition-web",
-      "runtimeExecutable": "D:/Flutter/flutter/bin/flutter.bat",
-      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8080", "--web-hostname", "localhost"],
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["scripts/dev_proxy.py"],
       "port": 8080
     }
   ]
