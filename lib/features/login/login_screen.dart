@@ -320,21 +320,30 @@ class _LoginCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             const Text(
-              'Voer je organisatiecode en inloggegevens in.',
+              'Voer je organisatie-ID en inloggegevens in.',
               style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
             ),
             const SizedBox(height: 20),
 
             TextFormField(
               controller: tenantController,
-              validator: (v) =>
-                  (v?.trim().isEmpty ?? true) ? 'Vul je organisatiecode in' : null,
+              validator: (v) {
+                if (v?.trim().isEmpty ?? true) return 'Vul je organisatie-ID in';
+                final uuidRegex = RegExp(
+                  r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$',
+                );
+                if (!uuidRegex.hasMatch(v!.trim())) {
+                  return 'Ongeldig formaat — verwacht: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx';
+                }
+                return null;
+              },
               textInputAction: TextInputAction.next,
               autocorrect: false,
               decoration: const InputDecoration(
-                labelText: 'Organisatiecode',
-                hintText: 'bijv. mijn-bedrijf',
+                labelText: 'Organisatie-ID',
+                hintText: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
                 prefixIcon: Icon(Icons.business_rounded),
+                helperText: 'Vraag dit op bij de Planbition-beheerder',
               ),
             ),
             const SizedBox(height: 12),

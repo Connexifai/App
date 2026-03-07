@@ -24,7 +24,7 @@ import re
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-BACKEND = "https://mobile-api.planbition.nl"
+BACKEND = "https://dev-mobile-api.planbition.nl"
 # Resolve build/web relative to the script location (scripts/../build/web)
 _SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.normpath(os.path.join(_SCRIPT_DIR, "..", "build", "web"))
@@ -185,6 +185,9 @@ class PlanbitionProxy(http.server.BaseHTTPRequestHandler):
             self.wfile.write(resp_body)
 
         except Exception as exc:
+            import traceback
+            print(f"[proxy] ERROR forwarding {method} {self.path}: {exc}", flush=True)
+            traceback.print_exc()
             msg = f"Proxy error: {exc}".encode()
             self.send_response(502)
             self.send_header("Content-Type", "text/plain")

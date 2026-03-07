@@ -6,7 +6,7 @@ abstract final class ApiConstants {
   /// Override at build time with --dart-define=API_URL=http://localhost:8080
   static const String baseUrl = String.fromEnvironment(
     'API_URL',
-    defaultValue: 'https://mobile-api.planbition.nl',
+    defaultValue: 'https://dev-mobile-api.planbition.nl',
   );
 
   /// API version header value.
